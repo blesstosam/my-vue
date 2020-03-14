@@ -21,19 +21,20 @@ class Dep {
 	}
 }
 Dep.target = null
-function pushTarget(watch) {
-	Dep.target = watch
-}
-
 
 class Watch {
 	constructor(exp, fn, data) {
 		this.exp = exp
 		this.fn = fn
-		pushTarget(this)
+
+		// 将watcher暴露出来
+		Dep.target = this
 
 		// 触发getter 用于收集依赖 包括数组的依赖
 		data[exp]
+
+		// 每次收集完之后重置target
+		Dep.target = null
 	}
 }
 
@@ -116,7 +117,7 @@ function defineReactive(data, key) {
 	// 不能在get中直接返回 => return obj[key] 这里的obj[key]同样会触发getter 会导致死循环
 	var oldVal = data[key]
 
-	// var a = {a: 1, b: {bb: 1}}
+	// var a = {a: 1, b: {bb: 1}， arr: [1,2,3, arr_1: [1,2,3]]}
 	// 递归进行劫持子对象
 	// 是不是对象或数组在函数里面已经判断
 	const childOb = observe(oldVal)
@@ -129,16 +130,21 @@ function defineReactive(data, key) {
 			// 保证target是一个watch 而不是null
 			if (Dep.target) {
 				// 对象的属性用该函数里的闭包对象来收集
+				// 这里也会收集数组的依赖， 这个依赖的触发是由于直接替换该数组 而不是对数组的操作 比如：
+				// const obj = {arr: [1,2,3]} => obj.arr = 1
 				dep.depend();
 
 				if (childOb) {
-					// childOb.dep.depend()
+					// todo ? 如果是对象是在dep里多收集了一次依赖 但是这个依赖不会触发 因为对象的触发是在setter里调用闭包里的依赖
+
+					// 如果是数组 通过 data[exp] 也会触发依赖收集
+					// 这里收集对数组的依赖 但是数组的依赖要用 data.__ob__.dep 来收集
+					// =>  等同于oldVal.__ob__.dep.depend()
+					childOb.dep.depend()
+
+					// todo ? 为什么需要这一步
 					if (Array.isArray(oldVal)) {
-						// 如果是数组 通过 data[exp] 也会触发依赖收集
-						// 但是数组的依赖要用 data.__ob__.dep 来收集
-						console.log(oldVal, Dep.target, 'klkl')
 						dependArray(oldVal)
-						oldVal.__ob__.dep.depend()
 					}
 				}
 			}
@@ -146,6 +152,8 @@ function defineReactive(data, key) {
 			return oldVal
 		},
 		set(newVal) {
+			// 对象里对新的值进行劫持
+			// 注意数组里对新值的劫持也有 见overrideArrayProto
 			if (newVal !== oldVal) {
 				if (isPlainObject(newVal) || Array.isArray(newVal)) {
 					observe(newVal)
@@ -200,12 +208,24 @@ function overrideArrayProto(array) {
 				// 调用原始 原型 的数组方法
 				result = originalProto[method].apply(this, arg);
 
-				// 对新的数组进行监测
-				overrideArrayProto(this);
-
 				// 执行watcher的回调
 				const ob = this.__ob__
+
+				let inserted
+				switch (key) {
+					case 'push':
+					case 'unshift':
+						inserted = arg
+						break;
+					case 'splice':
+						inserted = arg.slice(2)
+						break;
+				}
+				// 对新的数组进行监测
+				if (inserted) ob.observeArray(inserted)
+
 				console.log(ob.dep.subs.length)
+
 				ob.dep.notify(this, oldArray)
 
 				return result;
@@ -227,10 +247,13 @@ function overrideArrayProto(array) {
 window.doSet = function () {
 	obj.b = 2
 	obj.d = 'hah'
-	obj.arr.push(11)
+	// obj.arr.push(11)
+	// obj.arr = 1
 
 	// todo 怎么解析这种不止一层的路径？ 数组还是
 	obj.c.cc = 'new'
+
+	obj.c = 'new c'
 
 }
 
@@ -241,16 +264,20 @@ window.doGet = function () {
 initData(obj);
 console.log(obj)
 
-new Watch('b', (newVal, oldVal) => {
-	console.log(`b ${oldVal} changed ${newVal}`)
-}, obj)
+// new Watch('b', (newVal, oldVal) => {
+// 	console.log(`b ${oldVal} changed ${newVal}`)
+// }, obj)
 
-new Watch('d', (newVal, oldVal) => {
-	console.log(`d ${oldVal} change to ${newVal}`)
-}, obj)
+// new Watch('d', (newVal, oldVal) => {
+// 	console.log(`d ${oldVal} change to ${newVal}`)
+// }, obj)
 
-new Watch('arr', (newVal, oldVal) => {
-	console.log(`arr ${oldVal} change to ${newVal}`)
+// new Watch('arr', (newVal, oldVal) => {
+// 	console.log(`arr ${oldVal} change to ${newVal}`)
+// }, obj)
+
+new Watch('c', (newVal, oldVal) => {
+	console.log(`c ${oldVal} change to ${newVal}`)
 }, obj)
 
 
