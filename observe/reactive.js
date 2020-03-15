@@ -179,6 +179,7 @@ function dependArray(value) {
 	}
 }
 
+
 /**
  * 对原型上的方法进行改写
  * @param {*} array 
