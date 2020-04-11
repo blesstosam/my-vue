@@ -43,19 +43,24 @@
 const Koa = require('koa');
 const app = new Koa();
 
-app.listen(3000);
+app.listen(6001, () => {console.log('listen 6000')});
 
 // logger
 app.use(async (ctx, next) => {
+  ctx.respond=false
   await next();
   const rt = ctx.response.get('X-Response-Time');
+  console.log(ctx.response, '---', ctx.res.getHeader('Content-Type'), 222)
   console.log(`${ctx.method} ${ctx.url} - ${rt}`);
 });
 
 
 // response
 app.use(async ctx => {
+  // console.log(ctx.response)
   ctx.body = 'Hello World';
+  // ctx.type="application/json"
+  ctx.res.end('Hello World')
 });
 
 
