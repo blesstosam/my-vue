@@ -1,5 +1,9 @@
 .cache
 node_modules/
 dist/
+
 ssr/webpack-ssr/node_modules/
 ssr/webpack-ssr/dist/
+
+webpack-demo/node_modules/
+webpack-demo/node_modules/dist/

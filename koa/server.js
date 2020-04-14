@@ -42,8 +42,13 @@
 /********************* 测试 koa **************************/
 const Koa = require('koa');
 const app = new Koa();
+const send = require('koa-send')
 
-app.listen(6001, () => {console.log('listen 6000')});
+app.listen(6001, () => {console.log('listen 6001')});
+
+app.use(async (ctx) => {
+  await send(ctx, ctx.path, { root: __dirname + '/static' });
+})
 
 // logger
 app.use(async (ctx, next) => {
