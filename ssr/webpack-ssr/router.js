@@ -1,13 +1,15 @@
 import Vue from 'vue'
-import Router from 'vue-router'
+import VueRouter from 'vue-router'
 
-Vue.use(Router)
+Vue.use(VueRouter)
 
-export function createRouter () {
-  return new Router({
+export function createRouter() {
+  return new VueRouter({
     mode: 'history',
     routes: [
-      {path: '/admin', components: () => import('./components/Foo.vue')}
+      { path: '/', component: () => import('./components/Home.vue') },
+      { path: '/foo', component: () => import('./components/Foo.vue') },
+      { path: '/home', component: () => import('./components/Home.vue') }
     ]
   })
 }

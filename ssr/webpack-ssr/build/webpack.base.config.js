@@ -1,12 +1,14 @@
 const path = require('path')
 const webpack = require('webpack')
-// const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
+// css样式提取单独文件
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 const isProd = process.env.NODE_ENV === 'production'
 
 module.exports = {
+  mode: process.env.NODE_ENV || 'development',
   devtool: isProd
     ? false
     : '#cheap-module-source-map',
@@ -14,11 +16,6 @@ module.exports = {
     path: path.resolve(__dirname, '../dist'),
     publicPath: '/dist/',
     filename: '[name].[chunkhash].js'
-  },
-  resolve: {
-    alias: {
-      'public': path.resolve(__dirname, '../public')
-    }
   },
   module: {
     noParse: /es6-promise\.js$/, // avoid webpack shimming process
@@ -45,44 +42,32 @@ module.exports = {
           name: '[name].[ext]?[hash]'
         }
       },
-      // {
-      //   test: /\.styl(us)?$/,
-      //   use: isProd
-      //     ? ExtractTextPlugin.extract({
-      //         use: [
-      //           {
-      //             loader: 'css-loader',
-      //             options: { minimize: true }
-      //           },
-      //           'stylus-loader'
-      //         ],
-      //         fallback: 'vue-style-loader'
-      //       })
-      //     : ['vue-style-loader', 'css-loader', 'stylus-loader']
-      // },
+      {
+        test: /\.styl(us)?$/,
+        // 利用mini-css-extract-plugin提取css, 开发环境也不是必须
+        // use: [MiniCssExtractPlugin.loader, 'css-loader', 'stylus-loader']
+        // 开发环境不需要提取css单独文件
+        use: isProd
+          ? [MiniCssExtractPlugin.loader, 'css-loader', 'stylus-loader']
+          : ['vue-style-loader', 'css-loader', 'stylus-loader']
+      },
     ]
   },
   performance: {
     hints: false
   },
-  plugins: [
-    new VueLoaderPlugin(),
-    new FriendlyErrorsPlugin()
-  ],
-
-  // plugins: isProd
-  //   ? [
-  //       new VueLoaderPlugin(),
-  //       new webpack.optimize.UglifyJsPlugin({
-  //         compress: { warnings: false }
-  //       }),
-  //       new webpack.optimize.ModuleConcatenationPlugin(),
-  //       new ExtractTextPlugin({
-  //         filename: 'common.[chunkhash].css'
-  //       })
-  //     ]
-  //   : [
-  //       new VueLoaderPlugin(),
-  //       new FriendlyErrorsPlugin()
-  //     ]
+  plugins: isProd
+    ? [
+      new VueLoaderPlugin(),
+      new webpack.optimize.ModuleConcatenationPlugin(),
+      // webpack4.0版本以上采用MiniCssExtractPlugin 而不使用extract-text-webpack-plugin
+      new MiniCssExtractPlugin({
+        filename: 'static/css/[name].[contenthash].css',
+        chunkFilename: 'static/css/[name].[contenthash].css'
+      }),
+    ]
+    : [
+      new VueLoaderPlugin(),
+      new FriendlyErrorsPlugin()
+    ]
 }

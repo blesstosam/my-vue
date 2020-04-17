@@ -4,7 +4,7 @@ const send = require('koa-send')
 
 // vue server renderer
 const renderer = require('vue-server-renderer').createRenderer({
-  template: require('fs').readFileSync('ssr/temp.html', 'utf-8')
+  template: require('fs').readFileSync('temp.html', 'utf-8')
 })
 
 const server = new Koa();

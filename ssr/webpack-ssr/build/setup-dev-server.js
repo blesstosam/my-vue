@@ -1,11 +1,15 @@
 const webpack = require('webpack');
 const path = require('path');
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const chokidar = require('chokidar')
 const fs = require('fs')
 const MFS = require('memory-fs')
 const clinetCfg = require('./webpack.client.config')
 const serverCfg = require('./webpack.server.config')
+
+// // webpack热加载需要
+// const webpackDevMiddleware = require('koa-webpack-dev-middleware')
+// // 配合热加载实现模块热替换
+// const webpackHotMiddleware = require('koa-webpack-hot-middleware')
 
 const PassThrough = require('stream').PassThrough;
 
@@ -20,14 +24,13 @@ const readFile = (fs, file) => {
 module.exports = function setupDevServer (koaApp, templatePath, cb) {
 	let bundle
 	let template
-	// todo 这个是干嘛的 看webpack官方文档
 	let clientManifest
 
 	let ready
 	const readyPromose = new Promise(r => { ready = r })
 	const update = () => {
-		console.log(bundle, clientManifest, 'in update++++++++++++++++++++')
 		if (bundle && clientManifest) {
+			console.log('++++++++++++++++++inside update')
      	// ready() => reslove() 每次调用触发readyPromise.then里的回调
       ready()
       cb(bundle, {
@@ -55,50 +58,56 @@ module.exports = function setupDevServer (koaApp, templatePath, cb) {
     new webpack.NoEmitOnErrorsPlugin()
   )
 
-	// 之前放在webpack.config.js里的配置现在放到这里
+  // dev middleware
 	const clientCompiler = webpack(clinetCfg);
-	// webpack-dev-middleware 用于处理静态文件
+	// webpack-dev-middleware 最直观简单的理解就是一个运行于内存中的文件系统
+	// 用于处理静态文件
 	// 使用 webpack-dev-middleware 的时候webpack会自动开启watch
 	const devMiddleware = require('webpack-dev-middleware')(clientCompiler, {
 	  // webpack-dev-middleware options
-	  publicPath: '/dist/', // required
+		publicPath: clinetCfg.output.publicPath, // required
 	})
 	// 官方给的示例是express的，这里改成koa 因为后台框架选用koa
 	// 开发服务器保持和生产一致
 	// 参考自 https://www.cnblogs.com/liuyt/p/7217024.html
-	koaApp.use(() => {
+	const useDevMiddleware = () => {
 		return async (ctx, next) => {
-	    await devMiddleware(ctx.req, {
-	      end: (content) => {
-	        ctx.body = content
-	      },
-	      setHeader: (name, value) => {
-	        ctx.set(name, value)
-	      }
+			console.log('use dev middleware inside......')
+	    const hasNext = await devMiddleware(ctx.req, {
+	      end: (content) => ctx.body = content,
+	      setHeader: (name, value) => ctx.set(name, value)
 	  	}, next)
+	  	console.log(hasNext, 'next')
+	  	hasNext && await hasNext()
 		}
-	});
+	}
+	koaApp.use(useDevMiddleware());
+
+	// exporess 写法
+	// koaApp.use(devMiddleware)
+
 	// https://cloud.tencent.com/developer/ask/151446
+	// complier.plugin('done') 被废弃 第一个字符串随便写
 	clientCompiler.hooks.done.tap('aaa', stats => {
-		console.log('-------------------done', devMiddleware.fileSystem)
-	  // stats.errors.forEach(err => console.error(err))
-	  // stats.warnings.forEach(err => console.warn(err))
-	  if (stats.errors) return
-	  console.log(readFile(
-	    devMiddleware.fileSystem,
-	    'client-manifest.json'
-	  ), 222)
-	// todo 怎么读区manifest.json 看nuxt 和webpack
+		console.log('-------------------complier done')
+		stats = stats.toJson()
+	  stats.errors.forEach(err => console.error(err))
+	  stats.warnings.forEach(err => console.warn(err))
+	  if (stats.errors.length) return
+
+		// vue-ssr-client-manifest.json 是由 VueSSRClientPlugin 插件生成的
+		// 配置在 webpack.client.config.js 里
 	  clientManifest = JSON.parse(readFile(
 	    devMiddleware.fileSystem,
-	    'client-manifest.json'
+	    'vue-ssr-client-manifest.json'
 	  ))
 	  update()
 	})
 
+	// hot middleware
 	// webpack-hot-middleware 插件用于热更新
 	// 同样改成koa的版本
-	koaApp.use(() => {
+	const useHmrMiddlewre = () => {
 		const hmrPlugin = require('webpack-hot-middleware')(clientCompiler, { heartbeat: 5000 })
 		return async (ctx, next) => {
 	   let stream = new PassThrough()
@@ -111,9 +120,13 @@ module.exports = function setupDevServer (koaApp, templatePath, cb) {
 	      }
 	    }, next)
 		}
-	})
+	}
+	koaApp.use(useHmrMiddlewre())
 
+	// express 写法
+  // koaApp.use(require('webpack-hot-middleware')(clientCompiler, { heartbeat: 5000 }))
 
+ 	// watch and update server renderer
   const serverCompiler = webpack(serverCfg)
   const mfs = new MFS()
   serverCompiler.outputFileSystem = mfs
@@ -124,11 +137,10 @@ module.exports = function setupDevServer (koaApp, templatePath, cb) {
 
 		// vue-server-renderer/server-plugin 会生成 vue-ssr-server-bundle.json 文件
     bundle = JSON.parse(readFile(mfs, 'vue-ssr-server-bundle.json'))
+    // console.log(bundle, 'bundle')
     update()
   })
 
-
-	koaApp.listen(5000, () => { console.log('server listening in port 5000') })
 
 	return readyPromose
 }

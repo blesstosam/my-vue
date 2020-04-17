@@ -42,17 +42,17 @@
 /********************* 测试 koa **************************/
 const Koa = require('koa');
 const app = new Koa();
-const send = require('koa-send')
+// const send = require('koa-send')
 
 app.listen(6001, () => {console.log('listen 6001')});
 
-app.use(async (ctx) => {
-  await send(ctx, ctx.path, { root: __dirname + '/static' });
-})
+// app.use(async (ctx) => {
+//   await send(ctx, ctx.path, { root: __dirname + '/static' });
+// })
 
 // logger
 app.use(async (ctx, next) => {
-  ctx.respond=false
+  // ctx.respond=false
   await next();
   const rt = ctx.response.get('X-Response-Time');
   console.log(ctx.response, '---', ctx.res.getHeader('Content-Type'), 222)
@@ -62,10 +62,10 @@ app.use(async (ctx, next) => {
 
 // response
 app.use(async ctx => {
-  // console.log(ctx.response)
+  ctx.response.type = 'text/html'
   ctx.body = 'Hello World';
   // ctx.type="application/json"
-  ctx.res.end('Hello World')
+  // ctx.res.end('Hello World')
 });
 
 

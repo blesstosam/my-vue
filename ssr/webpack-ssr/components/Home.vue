@@ -1,15 +1,16 @@
 <template>
   <div>
     <h1>{{ msg }}</h1>
-    <router-view></router-view>
+    <router-link to="/foo">foo</router-link>
   </div>
 </template>
 
 <script>
 export default {
+  name: 'Home',
   data() {
     return {
-      msg: 'App',
+      msg: 'Home',
     };
   },
 };
