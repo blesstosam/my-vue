@@ -7,7 +7,9 @@
 </head>
 <body>
 
-  <div id="app"></div>
+  <div id="app">
+    {{ b }}
+  </div>
 
   <script src="./node_modules/vue/dist/vue.js"></script>
   <script>
@@ -16,13 +18,18 @@
       el: '#app',
       data: {
         a: 1,
-        b: {bb: 1},
+        b: {bb: 1, cc: 222},
         arr: [1,2,3],
         arr1: [{a: 1, b: 2}]
       },
       // data: [1,2,3],
       created() {
         console.log(this._data)
+        this.b.cc = 222
+      },
+      mounted() {
+        this.b.cc = 333
+        // this.$set(this._data, 'c', 1)
       }
     })
 

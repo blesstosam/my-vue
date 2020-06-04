@@ -103,7 +103,7 @@ function MyFunctionalComponent2() {
 
 const funVnode = h(MyFunctionalComponent)
 const funVnode2 = h(MyFunctionalComponent2)
-// console.log(funVnode)
+// console.log(funVnode, funVnode2)
 
 // ***************************************************** 测试 新旧的 children 都是单个子节点时
 // render(h('div', null,
@@ -268,3 +268,10 @@ class ParentComponent {
   }
 }
 render(h(ParentComponent), document.querySelector('#app'))
+
+
+
+
+
+
+

@@ -52,7 +52,7 @@ app.listen(6001, () => {console.log('listen 6001')});
 
 // logger
 app.use(async (ctx, next) => {
-  // ctx.respond=false
+  ctx.respond=false
   await next();
   const rt = ctx.response.get('X-Response-Time');
   console.log(ctx.response, '---', ctx.res.getHeader('Content-Type'), 222)
@@ -62,10 +62,10 @@ app.use(async (ctx, next) => {
 
 // response
 app.use(async ctx => {
-  ctx.response.type = 'text/html'
-  ctx.body = 'Hello World';
-  // ctx.type="application/json"
-  // ctx.res.end('Hello World')
+  // ctx.response.type = 'text/html'
+  // ctx.body = 'Hello World';
+    // ctx.type="application/json"
+    ctx.res.end('Hello World')
 });
 
 
