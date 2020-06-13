@@ -14,7 +14,6 @@ export function isPlainObject(obj) {
 	return OP.toString.call(obj) === '[object Object]'
 }
 
-// 检查该对象本身有没有该属性 不会计算原型链上的属性
 const hasOwnProperty = Object.prototype.hasOwnProperty
 export function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)

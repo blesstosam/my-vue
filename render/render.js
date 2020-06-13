@@ -2,6 +2,7 @@ import { VNodeFlags, ChildrenFlags } from './flags'
 import { createTextVNode } from './h.js'
 
 /**
+ * 渲染器，将vnode 渲染成真正的html
  * 1. 如果新老vnode都存在，将新vnode和老的做比对，将两者不同的部分更新到dom里，叫做patch（打补丁）
  * 2. 如果只有新的vnode，则直接将新的vnode挂载到容器上，叫做mount（挂载）
  * @param {*} vnode 

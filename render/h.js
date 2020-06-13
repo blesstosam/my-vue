@@ -28,26 +28,6 @@
 // }
 // console.log(parse(cls));
 
-// function normalizeClass(classValue) {
-//   // res 是最终要返回的类名字符串
-//   let res = ''
-//   if (typeof classValue === 'string') {
-//     res = classValue
-//   } else if (Array.isArray(classValue)) {
-//     for (let i = 0; i < classValue.length; i++) {
-//       res += normalizeClass(classValue[i]) + ' '
-//     }
-//   } else if (typeof classValue === 'object') {
-//     for (const name in classValue) {
-//       if (classValue[name]) {
-//         res += name + ' '
-//       }
-//     }
-//   }
-//   return res.trim()
-// }
-// console.log(normalizeClass(cls))
-
 // ---------------------------------------------------------------------------------------------
 
 
@@ -70,12 +50,21 @@
 // // 通过对比新旧 VNode，高效地渲染真实 DOM
 // patch(prevVnode, nextVnode)
 
+// ---------------------------------------------------------------------------------------------
+
 import { VNodeFlags, ChildrenFlags } from './flags'
 
 
 export const Fragment = Symbol()
 export const Portal = Symbol()
 
+/**
+ * 创建元素类型的VNode
+ * @param {*} tag 
+ * @param {*} data 
+ * @param {*} children
+ * @returns {VNode} 
+ */
 export function h(tag, data = null, children = null) {
   let flags = null
   if (typeof tag === 'string') {
@@ -149,7 +138,6 @@ export function h(tag, data = null, children = null) {
   }
 }
 
-
 function normalizeVNodes(children) {
   const newChildren = []
   for (let i = 0; i < children.length; i++) {
@@ -164,7 +152,11 @@ function normalizeVNodes(children) {
   return newChildren
 }
 
-
+/**
+ * 创建文本节点的VNode
+ * @param {*} text 
+ * @returns {Vnode}
+ */
 export function createTextVNode(text) {
   return {
     _isVNode: true,
@@ -178,6 +170,29 @@ export function createTextVNode(text) {
     childFlags: ChildrenFlags.NO_CHILDREN,
     el: null
   }
+}
+
+/**
+ * 序列化class
+ * @param {*} classValue 
+ * @returns {string}
+ */
+function normalizeClass(classValue) {
+  let res = ''
+  if (typeof classValue === 'string') {
+    res = classValue
+  } else if (Array.isArray(classValue)) {
+    for (let i = 0; i < classValue.length; i++) {
+      res += normalizeClass(classValue[i]) + ' '
+    }
+  } else if (typeof classValue === 'object') {
+    for (const name in classValue) {
+      if (classValue[name]) {
+        res += name + ' '
+      }
+    }
+  }
+  return res.trim()
 }
 
 // const elementVNode = h('div', null, h('span'))
@@ -203,26 +218,6 @@ export function createTextVNode(text) {
 // class MyStatefulComponent extends Component { }
 // const node3 = h(MyStatefulComponent, null, h('div'))
 // console.log(node3)
-
-// 序列化class
-function normalizeClass(classValue) {
-  // res 是最终要返回的类名字符串
-  let res = ''
-  if (typeof classValue === 'string') {
-    res = classValue
-  } else if (Array.isArray(classValue)) {
-    for (let i = 0; i < classValue.length; i++) {
-      res += normalizeClass(classValue[i]) + ' '
-    }
-  } else if (typeof classValue === 'object') {
-    for (const name in classValue) {
-      if (classValue[name]) {
-        res += name + ' '
-      }
-    }
-  }
-  return res.trim()
-}
 
 
 

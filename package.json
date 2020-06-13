@@ -17,7 +17,7 @@
   },
   "scripts": {
     "render": "parcel ./render/index.html",
-    "r": "parcel ./observe/reactive.html"
+    "react": "parcel ./observe/reactive.html"
   },
   "keywords": [],
   "author": "",
