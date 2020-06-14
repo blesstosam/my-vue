@@ -228,7 +228,12 @@ function parseText(text) {
   return tokens.join('+')
 }
 
-// 调用parsehtml的伪代码
+/**
+ * 将模板转换为ast
+ * @param {*} html 模板
+ * @returns {Tree}
+ *  type: 1-标签  2-带变量的文本  3-不带变量的文本或注释
+ */
 function parseToAST(html) {
   let root = null;
 
@@ -276,7 +281,7 @@ function parseToAST(html) {
           });
         } else {
           children.push({
-            type: 2,
+            type: 3,
             text,
           });
         }

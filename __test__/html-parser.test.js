@@ -1,7 +1,7 @@
 const { parseToAST, parseText } = require('../compile/html-parser')
 
-test('test `parseToAST` params => <div class="wrap"><span>hello</span></div>', () => {
-  const html = '<div class="wrap"><span>hello</span></div>'
+test('test `parseToAST` params => <div class="wrap"><span>hello {{name}}</span></div>', () => {
+  const html = '<div class="wrap"><span>hello {{name}}</span></div>'
 
   // ast = {
   //   type: 1,
@@ -17,7 +17,8 @@ test('test `parseToAST` params => <div class="wrap"><span>hello</span></div>', (
   //       children: [
   //         {
   //           type: 2,
-  //           text: 'hello'
+  //           text: 'hello',
+  //           expression: '"hello "+_s(name)'
   //         }
   //       ]
   //     }
@@ -28,7 +29,8 @@ test('test `parseToAST` params => <div class="wrap"><span>hello</span></div>', (
 
   expect(ast.tag).toBe('div')
   expect(ast.children[0].tag).toBe('span')
-  expect(ast.children[0].children[0].text).toBe('hello')
+  expect(ast.children[0].children[0].text).toBe('hello {{name}}')
+  expect(ast.children[0].children[0].expression).toBe('"hello "+_s(name)')
 })
 
 test('test `parseText` params => 你好{{name}}', () => {

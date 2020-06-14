@@ -138,6 +138,8 @@ export function h(tag, data = null, children = null) {
   }
 }
 
+export const createElement = h
+
 function normalizeVNodes(children) {
   const newChildren = []
   for (let i = 0; i < children.length; i++) {
