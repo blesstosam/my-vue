@@ -13,11 +13,13 @@
     "vue-server-renderer": "^2.6.11"
   },
   "devDependencies": {
+    "jest": "^26.0.1",
     "parcel-bundler": "^1.12.4"
   },
   "scripts": {
     "render": "parcel ./render/index.html",
-    "react": "parcel ./observe/reactive.html"
+    "react": "parcel ./observe/reactive.html",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
