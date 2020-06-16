@@ -5,7 +5,7 @@
  * 优化器
  * @param {*} root ast 根节点
  */
-function optimize(root) {
+export function optimize(root) {
   if (!root) return
 
   makeStatic(root)

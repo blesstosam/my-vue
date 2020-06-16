@@ -1,4 +1,4 @@
-const { parseToAST, parseText } = require('../compile/html-parser')
+import { parseToAST, parseText } from '../compiler/html-parser'
 
 test('test `parseToAST` params => <div class="wrap"><span>hello {{name}}</span></div>', () => {
   const html = '<div class="wrap"><span>hello {{name}}</span></div>'

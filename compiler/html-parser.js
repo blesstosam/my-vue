@@ -49,7 +49,7 @@ function advance(n) {
  * 3. 解析结尾
  * @returns {tagName: string; attrs: []; unarySlash: '/'|''}
  */
-function parseStartTag() {
+export function parseStartTag() {
   // 解析标签名 判断模板是否符合开始标签的特征
   const start = html.match(startTagOpen);
   // 如果是以开始标签开头
@@ -76,7 +76,7 @@ function parseStartTag() {
   }
 }
 
-function parseHtml(template, options) {
+export function parseHtml(template, options) {
   html = template;
 
   function isPlainTextElement(lastTag) {
@@ -200,7 +200,7 @@ function parseHtml(template, options) {
 }
 
 // 解析文本 普通文本和带变量的文本
-function parseText(text) {
+export function parseText(text) {
   const tagRE = /\{\{((?:.|\n)+?)\}\}/g;
   // 如果是纯文本 直接返回
   if (!tagRE.test(text)) {
@@ -234,7 +234,7 @@ function parseText(text) {
  * @returns {Tree}
  *  type: 1-标签  2-带变量的文本  3-不带变量的文本或注释
  */
-function parseToAST(html) {
+export function parseToAST(html) {
   let root = null;
 
   parseHtml(html, {
@@ -298,5 +298,3 @@ function parseToAST(html) {
 
   return root;
 }
-
-module.exports = { parseStartTag, parseText, parseHtml, parseToAST };
