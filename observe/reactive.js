@@ -1,7 +1,13 @@
+/**
+ * 数组的 observe 通过改写数组的原型方法
+ * 数组的依赖收集在读取数组触发的getter阶段 依赖收集器在array.__ob__.dep 依赖触发是在改写的原型方法里
+ * （依赖收集器放在 Observer 实例上，是为了在getter和改写的原型方法里同时能访问到）
+ * -------------------------------
+ * 对象的 observe 通过getter和setter
+ * 对象的依赖收集在读取对象属性的getter阶段 依赖收集器在函数内的局部变量里 依赖触发是在setter阶段
+ */
+
 import { def, isPlainObject } from '../util'
-
-
-
 
 class Dep {
 	constructor() {
@@ -39,7 +45,7 @@ export class Watcher {
 		// 将watcher暴露出来
 		Dep.target = this
 
-		// 读取data上的值 从而收集依赖 包括数组的依赖
+		// 读取data上的值 从而收集依赖 对象和数组都在getter里收集
 		let value = this.getter(this.data)
 
 		// 每次收集完之后重置target
@@ -72,11 +78,10 @@ export function parsePath(path) {
 class Observer {
 	constructor(data) {
 		this.value = data
-		// 这个dep专门用来收集数组的依赖
-		// 每个数组都会带一个observer
+		// 这个dep专门用来收集数组的依赖 每个数组都会带一个observer
 		this.dep = new Dep()
-		// 将 这个observer 挂在每个数组和对象下面
-		// 如果是数组可以通过d.__ob__.dep.depend() 来收集依赖 见 dependArray
+		// 将这个 observer 挂在每个数组和对象下面
+		// 如果是数组可以通过d.__ob__.dep.depend() 来收集依赖
 		def(data, '__ob__', this)
 
 		if (Array.isArray(data)) {
@@ -90,8 +95,9 @@ class Observer {
 			// 	],
 			// 	a: 1
 			// }
-			// 改写该数组的原型方法
+			// 改写该数组的原型方法 对数组本身进行observe
 			overrideArrayProto(data)
+			// 对数组里的数据进行observe
 			this.observeArray(data)
 		} else {
 			this.walk(data);
@@ -105,10 +111,7 @@ class Observer {
 		})
 	}
 
-
-	// 对数组进行劫持
 	observeArray(arr) {
-		// 如果元素不是对象或者数组 则不需要继续observe
 		// 如果有元素是对象或数组 递归observe每个数组的元素
 		for (let i = 0, l = arr.length; i < l; i++) {
 			observe(arr[i])
@@ -118,6 +121,7 @@ class Observer {
 }
 
 function observe(data) {
+	// 数组和对象都会n ew 一个 observe 来观察数据
 	if (isPlainObject(data) || Array.isArray(data)) {
 		const ob = new Observer(data)
 		return ob
@@ -135,8 +139,9 @@ export function initData(data) {
 }
 
 /**
- * 用来对object劫持成响应式数据
+ * 将object劫持成响应式数据
  * 在getter阶段收集依赖，在setter阶段触发依赖
+ * 依赖收集器 dep 用局部变量保存 在getter和setter阶段都可以访问
  * @param {*} data 
  * @param {*} key 
  */
@@ -150,7 +155,6 @@ function defineReactive(data, key) {
 
 	// var a = {a: 1, b: {bb: 1}， arr: [1,2,3, arr_1: [1,2,3]]}
 	// 递归进行劫持子对象
-	// 是不是对象或数组在函数里面已经判断
 	const childOb = observe(oldVal)
 
 	Object.defineProperty(data, key, {
@@ -160,13 +164,13 @@ function defineReactive(data, key) {
 			// 收集依赖
 			// 保证target是一个watcher 而不是null
 			if (Dep.target) {
-				// 对象的属性用该函数里的闭包对象来收集
+				// 对象的属性用该函数里的局部变量来收集
 				// 这里也会收集数组的依赖， 这个依赖的触发是由于直接替换该数组 而不是对数组的操作 比如：
 				// const obj = {arr: [1,2,3]} => obj.arr = 1
 				dep.depend();
 
 				if (childOb) {
-					// todo ? 如果是对象,在dep里多收集了一次依赖 但是这个依赖不会触发 因为对象的触发是在setter里调用闭包里的依赖
+					// 如果是对象,在dep里多收集了一次依赖 但是这个依赖不会触发 因为对象的触发是在setter里调用闭包里的依赖
 
 					// 如果是数组 通过 data[exp] 也会触发依赖收集
 					// 这里收集对数组的依赖 但是数组的依赖要用 data.__ob__.dep 来收集
@@ -184,7 +188,6 @@ function defineReactive(data, key) {
 		},
 		set(newVal) {
 			// 对象里对新的值进行劫持
-			// 注意数组里对新值的劫持也有 见overrideArrayProto
 			if (newVal !== oldVal) {
 				if (isPlainObject(newVal) || Array.isArray(newVal)) {
 					observe(newVal)
@@ -211,12 +214,12 @@ function dependArray(value) {
 }
 
 /**
- * 对原型上的方法进行改写
+ * 对数组原型上的方法进行改写
  * @param {*} array 
  */
 function overrideArrayProto(array) {
 	/*
-	 *  需要重写的数组方法 OAR 是 overrideArrayMethod 的缩写
+	 *  需要重写的数组方法 OAM 是 overrideArrayMethod 的缩写
 	 */
 	const OAM = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
 
@@ -226,14 +229,15 @@ function overrideArrayProto(array) {
 		overrideProto = Object.create(Array.prototype),
 		result;
 	// 遍历要重写的数组方法
-	Object.keys(OAM).forEach(function (key, index, array) {
-		var method = OAM[index],
-			oldArray = [];
-		// 使用 Object.defineProperty 给 overrideProto 添加属性，属性的名称是对应的数组函数名，值是函数
+	OAM.forEach(function (method) {
+		let oldArray = [];
+		// 使用 Object.defineProperty 覆盖 overrideProto 的属性，属性的名称是对应的数组函数名，值是函数
 		Object.defineProperty(overrideProto, method, {
 			value: function () {
+				// 谁调用了这个方法 谁就是this 当调用数组的方法 比如 [1].push(2) 时 this就是[1] 
 				oldArray = this.slice(0);
 
+				// 复制参数 arg 是一个数组
 				var arg = [].slice.apply(arguments);
 
 				// 调用原始 原型 的数组方法
@@ -243,7 +247,7 @@ function overrideArrayProto(array) {
 				const ob = this.__ob__
 
 				let inserted
-				switch (key) {
+				switch (method) {
 					case 'push':
 					case 'unshift':
 						inserted = arg
