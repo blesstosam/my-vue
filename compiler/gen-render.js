@@ -1,7 +1,7 @@
 /**
  * 生成render函数 递归的调用下面的函数拼成字符串
  * _c => createElement 
- * _v => createTextNode
+ * _v => createTextVNode
  * _e => createEmptyNode 
  * _s => toString() 见html-parser的定义
  */
