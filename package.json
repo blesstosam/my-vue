@@ -22,7 +22,8 @@
   "scripts": {
     "render": "parcel ./render/index.html",
     "react": "parcel ./observe/reactive.html",
-    "test": "jest"
+    "test": "jest",
+    "parser": "jest html-parser"
   },
   "keywords": [],
   "author": "",

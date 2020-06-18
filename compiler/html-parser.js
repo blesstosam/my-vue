@@ -31,9 +31,9 @@ let html,
 // _s 函数的定义
 function toString(val) {
   return val == null
-    ? '' 
+    ? ''
     : typeof val === 'object'
-      ? JSON.stringify(val, null, 2) 
+      ? JSON.stringify(val, null, 2)
       : String(val)
 }
 
@@ -229,7 +229,8 @@ export function parseText(text) {
 }
 
 /**
- * 将模板转换为ast
+ * 将模板转换为ast 递归的截取模板 每次截取到对应的字符串 通过钩子函数存到对象里
+ * 节点的父子关系通过一个栈来维护 栈顶的元素是当前节点的父元素
  * @param {*} html 模板
  * @returns {Tree}
  *  type: 1-标签  2-带变量的文本  3-不带变量的文本或注释
@@ -251,12 +252,15 @@ export function parseToAST(html) {
         // 如果有父节点 就保存到其children里
         currentParent.children.push(element);
       }
-
       function createASTElement(tag, attrs, parent) {
         return {
           type: 1,
           tag,
           attrsList: attrs,
+          attrs: attrs.map(i => {
+            return { name: i[1], value: i[3] }
+          }),
+          plain: attrs.length === 0, // 表示标签是否有属性
           parent,
           children: [],
         };
@@ -294,7 +298,7 @@ export function parseToAST(html) {
     },
   });
 
-  console.log(root.children[0]);
+  console.log(root.attrs);
 
   return root;
 }
