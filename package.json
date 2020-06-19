@@ -23,7 +23,8 @@
     "render": "parcel ./render/index.html",
     "react": "parcel ./observe/reactive.html",
     "test": "jest",
-    "parser": "jest html-parser"
+    "test-parser": "jest html-parser",
+    "test-pro": "jest promise"
   },
   "keywords": [],
   "author": "",
