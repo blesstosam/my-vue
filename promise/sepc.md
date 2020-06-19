@@ -3,7 +3,7 @@
 ## 1. 术语
 
 1.1 `promise` 是一个对象或者函数并带有 then 方法  
-1.2 `thenable` 是用来定义 then 方法的对象或函数  
+1.2 `thenable` 是表示一个对象或函数已经定义了 then 方法
 1.3 `value` 是任何合法的数据类型（包括 undefined，thenable，promise）  
 1.4 `exception` 是用 throw 来抛出的错误  
 1.5 `reason` 是 promise 被 reject 的原因
@@ -51,6 +51,21 @@ promise.then(onFulfilled, onRejected);
 &nbsp;&nbsp;2.2.3.2 其不能在 promise rejected 之前被执行  
 &nbsp;&nbsp;2.2.3.3 其不能被调用超过一次
 
-...
+2.2.4 onFulfilled or onRejected must not be called until the execution context stack contains only platform code. [3.1]  
+这句话表示 onFulfilled 或 onRejected 要被异步执行，在 then 方法被调用后的事件循环（Event Loop）之后。  
+（并且文档提到实现这种效果，可以使用宏任务如 setTimeout setImmediate，或者微任务 MutationObserver 或 process.nextTick，或者自己实现一个任务队列来调度）
 
-2.2.7 then 必须返回一个 promise 
+2.2.5 onFulfilled and onRejected must be called as functions (i.e. with no this value). [3.2]  
+这句话表示在严格模式下 函数内部的 this 为 undefined，非严格模式下，this 为全局对象
+
+2.2.6 then 可以被相同的 promise 调用多次
+&nbsp;&nbsp;2.2.6.1 当 promise fulfilled 后 所有的 onFulfilled 必须按顺序执行
+&nbsp;&nbsp;2.2.6.2 当 promise rejected 后 所有的 onRejected 必须按顺序执行
+
+2.2.7 then 必须返回一个 promise
+
+```js
+promise2 = promise1.then(onFulfilled, onRejected);
+```
+
+&nbsp;&nbsp;2.2.7.1 If either onFulfilled or onRejected returns a value x, run the Promise Resolution Procedure [[Resolve]](promise2, x)
