@@ -41,10 +41,10 @@ export interface VNode  {
   // el 属性在上文中也没有提到，当一个 VNode 被渲染为真实 DOM 之后，el 属性的值会引用该真实DOM
   el: Element | null,
   
-  flags: number,
+  flags: VNodeFlags,
   tag: string | Function,
   data: {[key: string]: any},
   children: any,
-  childFlags: number
+  childFlags: VNodeFlags
 }
 

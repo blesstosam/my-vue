@@ -37,7 +37,7 @@ router.get('*', async (ctx, next) => {
 
   // 匹配静态文件
   if (ctx.req.url.indexOf('static/') !== -1) {
-    await send(ctx, 'ssr/static/' + '1.html')
+    send(ctx, 'ssr/static/' + '1.html')
     return;
   }
 
