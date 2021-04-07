@@ -20,8 +20,8 @@
     "parcel-bundler": "^1.12.4"
   },
   "scripts": {
-    "render": "parcel ./render/index.html",
-    "react": "parcel ./observe/reactive.html",
+    "render": "parcel vue2/render/index.html",
+    "react": "parcel vue2/observe/reactive.html",
     "test": "jest",
     "test-parser": "jest html-parser",
     "test-pro": "jest promise"

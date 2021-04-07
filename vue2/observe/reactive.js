@@ -7,7 +7,7 @@
  * 对象的依赖收集在读取对象属性的getter阶段 依赖收集器在函数内的局部变量里 依赖触发是在setter阶段
  */
 
-import { def, isPlainObject } from '../util'
+import { def, isPlainObject } from './util'
 
 class Dep {
 	constructor() {
@@ -121,7 +121,7 @@ class Observer {
 }
 
 function observe(data) {
-	// 数组和对象都会n ew 一个 observe 来观察数据
+	// 数组和对象都会 new 一个 observe 来观察数据
 	if (isPlainObject(data) || Array.isArray(data)) {
 		const ob = new Observer(data)
 		return ob
@@ -146,7 +146,7 @@ export function initData(data) {
  * @param {*} key 
  */
 function defineReactive(data, key) {
-	// 新建依赖收集实例
+	// 新建依赖收集实例 是一个必包 所以不需要额外的变量来存储该dep 这是与 vue3 响应式的区别之一
 	let dep = new Dep()
 
 	// 注意用一个变量来缓存该变量
@@ -276,9 +276,7 @@ function overrideArrayProto(array) {
 }
 
 
-
-
-/************************************************ test */
+/************************ test ***************/
 window.doSet = function () {
 	obj.b = 2
 	obj.d = 'hah'

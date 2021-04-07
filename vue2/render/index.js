@@ -41,6 +41,7 @@ const elementVNode = h('div',
     h('span', null, '我是标题2......')
   ])
 )
+console.log(elementVNode, 11)
 const elementVNode2 = h('input',
   {
     class: { 'cls-a': true },

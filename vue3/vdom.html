@@ -1,0 +1,118 @@
+<div id="app">
+  <button onclick="doPatch()">change color</button>
+</div>
+
+<style>
+  .red {
+    color: red;
+  }
+  .green {
+    color: green;
+  }
+</style>
+
+<script>
+  function h(tag, props, children) {
+    return {
+      tag,
+      props,
+      children
+    }
+  }
+
+  function mount(vnode, container) {
+    const { tag, props, children } = vnode
+    const el = (vnode.el = document.createElement(vnode.tag))
+
+    // deal props
+    if (props) {
+      Object.keys(props).forEach((key) => {
+        el.setAttribute(key, props[key])
+      })
+    }
+
+    container.appendChild(el)
+
+    // deal children
+    if (children) {
+      if (typeof children === 'string') {
+        el.textContent = children
+      } else {
+        for (const child of children) {
+          mount(child, el)
+        }
+      }
+    }
+  }
+
+  const vdom = h('div', { class: 'red' }, [h('span', null, 'hello')])
+
+  mount(vdom, document.getElementById('app'))
+
+  const vdom2 = h('div', { class: 'green' }, [h('span', null, 'changed!')])
+
+  function doPatch() {
+    patch(vdom, vdom2)
+  }
+
+  function patch(v1, v2) {
+    if (v1.tag === v2.tag) {
+      const el = (v2.el = v1.el)
+      // check props
+      const oldProps = v1.props || {}
+      const newProps = v2.props || {}
+      for (const key in newProps) {
+        const oldVal = oldProps[key]
+        const newVal = newProps[key]
+        if (oldVal !== newVal) {
+          el.setAttribute(key, newVal)
+        }
+      }
+      // if old prop does not exist in new props, just delete it
+      for (const key in oldProps) {
+        if (!(key in newProps)) {
+          el.removeAttribute(key)
+        }
+      }
+
+      // children
+      const oldChildren = v1.children
+      const newChildren = v2.children
+      if (typeof newChildren === 'string') {
+        if (typeof oldChildren === 'string') {
+          if (newChildren !== newChildren) {
+            el.textContent = newChildren
+          }
+        } else {
+          el.textContent = newChildren
+        }
+      } else {
+        // now newChildren is an array
+        if (typeof oldChildren === 'string') {
+          el.innerHTML = ''
+          newChildren.forEach((child) => {
+            mount(child, el)
+          })
+        } else {
+          const commonLen = Math.min(oldChildren.length, newChildren.length)
+          for (let i = 0; i < commonLen; i++) {
+            patch(oldChildren[i], newChildren[i])
+          }
+          if (newChildren.length > oldChildren.length) {
+            const plus = newChildren.slice(commonLen)
+            for (const child of plus) {
+              mount(plus, el)
+            }
+          } else if (newChildren.length < oldChildren.length) {
+            const extra = oldChildren.slice(commonLen)
+            for (const child of extra) {
+              el.removeChild(child.el)
+            }
+          }
+        }
+      }
+    } else {
+      // tag changed, just replace it
+    }
+  }
+</script>

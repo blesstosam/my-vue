@@ -1,0 +1,58 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@next"></script>
+
+<div id="app">
+  <button @click="id++">change id</button>
+  <div v-if="isPending">loading...</div>
+  <div v-else-if="data">{{ data }}</div>
+  <div v-else-if="error">Error: {{ error.message }}</div>
+</div>
+
+<script>
+  const { createApp, h, onMounted, onUnmounted, ref, watchEffect } = Vue
+
+  function useFecth(getUrl) {
+    const data = ref(null)
+    const error = ref(null)
+    const isPending = ref(true)
+
+    watchEffect(() => {
+      data.value = null
+      error.value = null
+      isPending.value = true
+      fetch(getUrl())
+        .then((res) => res.json())
+        .then((res) => {
+          isPending.value = false
+          data.value = res
+        })
+        .catch((err) => {
+          isPending.value = false
+          error.value = err
+        })
+    })
+
+    return {
+      data,
+      error,
+      isPending
+    }
+  }
+
+  const App = {
+    setup() {
+      const id = ref(1)
+      const { data, error, isPending } = useFecth(
+        // url 要改成函数 是因为要放到 useFecth里面的watchEffect调用 来收集依赖
+        () => `https://jsonplaceholder.typicode.com/todos/${id.value}`
+      )
+      return {
+        data,
+        error,
+        isPending,
+        id
+      }
+    }
+  }
+
+  createApp(App).mount('#app')
+</script>
