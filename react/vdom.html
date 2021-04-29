@@ -1,0 +1,68 @@
+<div id="app"></div>
+
+<script>
+  // https://engineering.hexacta.com/didact-learning-how-react-works-by-building-it-from-scratch-51007984e5c5
+
+  const TEXT_ELEMENT = 'TEXT_ELEMENT'
+
+  // vue: 子 vnode 是放在第三个数组参数里的 h(tag, props, children)
+  // react: 子 vnode 是一个个的传入的 createElement(type, props, child1, child2...)
+  function createElement(type, props, ...args) {
+    props = Object.assign({}, props)
+    if (args.length > 0) {
+      props.children = []
+        .concat(...args)
+        .filter((c) => Boolean(c))
+        .map((c) => (c instanceof Object ? c : createTextElement(c)))
+    }
+
+    return { type, props }
+  }
+
+  function createTextElement(value) {
+    return createElement(TEXT_ELEMENT, { nodeValue: value })
+  }
+
+  const v = createElement(
+    'div',
+    {
+      id: 'div',
+      onClick: () => {
+        console.log(1)
+      }
+    },
+    createElement('span', null, 'hah'),
+    createElement('a', { href: 'https://baidu.com' }, 'baidu')
+  )
+  console.log(v)
+
+  function render(vnode, container) {
+    const { type, props } = vnode
+    let dom = null
+    if (type === TEXT_ELEMENT) {
+      container.textContent = props.nodeValue
+    } else {
+      dom = document.createElement(type)
+      // handle props
+      if (props) {
+        for (let k in props) {
+          const val = props[k]
+          if (k !== 'children') {
+            if (k.startsWith('on')) {
+              dom.addEventListener(k.slice(2).toLowerCase(), val)
+            } else {
+              dom.setAttribute(k, val)
+            }
+          } else {
+            for (let c of props[k]) {
+              render(c, dom)
+            }
+          }
+        }
+      }
+      container.appendChild(dom)
+    }
+  }
+
+  render(v, document.getElementById('app'))
+</script>

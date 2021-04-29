@@ -51,10 +51,7 @@
 
   const vdom2 = h('div', { class: 'green' }, [h('span', null, 'changed!')])
 
-  function doPatch() {
-    patch(vdom, vdom2)
-  }
-
+  // v1 is old
   function patch(v1, v2) {
     if (v1.tag === v2.tag) {
       const el = (v2.el = v1.el)
@@ -114,5 +111,9 @@
     } else {
       // tag changed, just replace it
     }
+  }
+
+  function doPatch() {
+    patch(vdom, vdom2)
   }
 </script>
