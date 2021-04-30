@@ -26,10 +26,10 @@
       window.removeEventListener('mousemove', this.update)
     }
   }
-  // const App = {
-  //   mixins: [mouseMixin],
-  //   template: `{{x}} {{y}}`
-  // }
+  const App = {
+    mixins: [mouseMixin],
+    template: `{{x}} {{y}}`
+  }
 
   // 2. 使用高阶组件（hoc）
   function withMouse(Inner) {
@@ -57,17 +57,17 @@
       }
     }
   }
-  // const App = withMouse({
-  //   props: ['x', 'y'],
-  //   template: `{{x}} {{y}}`
-  // })
+  const App1 = withMouse({
+    props: ['x', 'y'],
+    template: `{{x}} {{y}}`
+  })
   // 缺点：高阶组件还是不能解决数据来源不明的问题 如下 foo从withFoo而来 x，y从withMouse而来
   // const App1 = withFoo(withMouse({
   //   props: ['x', 'y', 'foo'],
   //   template: `{{x}} {{y}}`
   // }))
 
-  // 3. 使用 scoped slot
+  // 3. 使用 scoped slot 即 所谓的 Renderless Components 
   const Mouse = {
     data() {
       return {
@@ -97,17 +97,16 @@
       )
     }
   }
-
-  // const App = {
-  //   components: { Mouse },
-  //   template: `
-  //     <Mouse v-slot="{ x, y }">
-  //       {{ x }} {{ y }}
-  //     </Mouse>
-  //   `
-  // }
+  const App2 = {
+    components: { Mouse },
+    template: `
+      <Mouse v-slot="{ x, y }">
+        {{ x }} {{ y }}
+      </Mouse>
+    `
+  }
   // 缺点：能解决mixin的两个问题 但是会带来性能的损耗（因为额外的组件嵌套）
-  // const App1 = {
+  // const App2 = {
   //   components: { Mouse },
   //   template: `
   //     <Mouse v-slot="{ x, y }">
@@ -141,7 +140,7 @@
       y
     }
   }
-  const App = {
+  const App3 = {
     setup() {
       const { x, y } = useMouse()
       return {
@@ -152,5 +151,5 @@
     template: `{{ x }} {{ y }}`
   }
 
-  createApp(App).mount('#app')
+  createApp(App3).mount('#app')
 </script>

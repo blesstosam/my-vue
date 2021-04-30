@@ -1,0 +1,127 @@
+<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.development.js"></script>
+
+<div id="app"></div>
+
+<script>
+  const e = React.createElement
+
+  // 原始组件 不可复用
+  class Mouse extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = { x: 0, y: 0 }
+    }
+
+    handleMouseMove(event) {
+      this.setState({
+        x: event.clientX,
+        y: event.clientY
+      })
+    }
+
+    render() {
+      return e(
+        'div',
+        { onMouseMove: (e) => this.handleMouseMove(e), style: { height: '100vh' } },
+        `${this.state.x} ${this.state.y}`
+      )
+    }
+  }
+
+  // 1. hoc 高阶组件
+  function withMouse(Inner) {
+    return class extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { x: 0, y: 0 }
+      }
+      handleMouseMove(event) {
+        this.setState({
+          x: event.clientX,
+          y: event.clientY
+        })
+      }
+
+      render() {
+        return e(
+          'div',
+          { onMouseMove: (e) => this.handleMouseMove(e), style: { height: '100vh' } },
+          e(Inner, { x: this.state.x, y: this.state.y })
+        )
+      }
+    }
+  }
+  class Cat extends React.Component {
+    constructor(props) {
+      super(props)
+    }
+    render() {
+      return e(
+        'div',
+        { style: { position: 'absolute', left: this.props.x, top: this.props.y } },
+        '1 am cat!'
+      )
+    }
+  }
+  const MouseWithCat = withMouse(Cat)
+
+  // 2. render props
+  //    和 vue 的 scoped slot 很像，都是将要渲染的元素通过参数传递进去(通过props传入函数)，同时将state从外部传出(函数回调传入参数)
+  class Mouse1 extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = { x: 0, y: 0 }
+    }
+
+    handleMouseMove(event) {
+      this.setState({
+        x: event.clientX,
+        y: event.clientY
+      })
+    }
+
+    render() {
+      return e(
+        'div',
+        { onMouseMove: (e) => this.handleMouseMove(e), style: { height: '100vh' } },
+        this.props.children(this.state)
+      )
+    }
+  }
+  class MouseWithCat1 extends React.Component {
+    constructor(props) {
+      super(props)
+    }
+    render() {
+      return e(Mouse1, {
+        children: (mouse) =>
+          e('div', { style: { position: 'absolute', left: mouse.x, top: mouse.y } }, '1 am cat!')
+      })
+    }
+  }
+
+  // 3. hooks 类似 vue 的 compotition api
+  function useMouse() {
+    const [state, setState] = React.useState({ x: 0, y: 0 })
+
+    function update(e) {
+      setState({ x: e.pageX, y: e.pageY })
+    }
+
+    React.useEffect(() => {
+      window.addEventListener('mousemove', update)
+      return () => {
+        window.removeEventListener('mousemove', update)
+      }
+    })
+
+    return state
+  }
+  function MouseWithCat2() {
+    const { x, y } = useMouse()
+    return e('div', { style: { position: 'absolute', left: x, top: y } }, '1 am cat!')
+  }
+
+  ReactDOM.render(e(MouseWithCat2), document.getElementById('app'))
+</script>
