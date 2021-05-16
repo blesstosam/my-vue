@@ -30,6 +30,9 @@
     mixins: [mouseMixin],
     template: `{{x}} {{y}}`
   }
+  // 缺点：
+  // 1. 数据来源不明
+  // 2. 数据之间容易产生命名冲突
 
   // 2. 使用高阶组件（hoc）
   function withMouse(Inner) {
@@ -61,13 +64,15 @@
     props: ['x', 'y'],
     template: `{{x}} {{y}}`
   })
-  // 缺点：高阶组件还是不能解决数据来源不明的问题 如下 foo从withFoo而来 x，y从withMouse而来
+  // 缺点：
+  // 1. 数据来源不明，如下 foo从withFoo而来 x，y从withMouse而来
+  // 2. 额外的组件你实例嵌套，导致无谓的性能损耗
   // const App1 = withFoo(withMouse({
   //   props: ['x', 'y', 'foo'],
   //   template: `{{x}} {{y}}`
   // }))
 
-  // 3. 使用 scoped slot 即 所谓的 Renderless Components 
+  // 3. 使用 scoped slot aka `Renderless Components`
   const Mouse = {
     data() {
       return {
@@ -105,7 +110,8 @@
       </Mouse>
     `
   }
-  // 缺点：能解决mixin的两个问题 但是会带来性能的损耗（因为额外的组件嵌套）
+  // 缺点：
+  // 1. 虽然能解决mixin的两个问题，但是由于额外的组件你实例嵌套，导致无谓的性能损耗
   // const App2 = {
   //   components: { Mouse },
   //   template: `
@@ -117,7 +123,10 @@
   //   `
   // }
 
-  // 4. 使用 setup
+  // 4. 使用 setup，能完美解决上述问题（所以setup带来的是组件间逻辑代码复用的更优雅实现）
+  // 1. 数据来源不明 => 需要显示的调用函数，所以知道数据来源
+  // 2. 命名冲突 => 函数返回值可以被任意重命名
+  // 3. 额外的组件实例 => 没有
   function useMouse() {
     const x = ref(0)
     const y = ref(0)
