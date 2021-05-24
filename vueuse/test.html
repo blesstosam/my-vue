@@ -1,0 +1,20 @@
+<div id="app">
+  <button @click="changeTitle">change title!</button>
+</div>
+
+<script type="module">
+  import { createApp } from 'https://cdn.jsdelivr.net/npm/vue@3.0.11/dist/vue.esm-browser.js'
+  import { useTitle } from './useTitle.js'
+
+  createApp({
+    setup() {
+      const title = useTitle()
+      function changeTitle() {
+        title.value = 'lll'
+      }
+      return {
+        changeTitle
+      }
+    }
+  }).mount('#app')
+</script>
