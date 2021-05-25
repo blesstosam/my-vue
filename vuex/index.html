@@ -1,0 +1,96 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+<div>111</div>
+
+<script>
+  let Vue = null
+
+  class Store {
+    constructor(opts = {}) {
+      this.opts = opts
+
+      const { state = {}, getters = {}, mutations = {}, actions = {} } = opts
+
+      // handme state
+      const _s = typeof state === 'function' ? state() : state
+      this._vm = new Vue({
+        data: {
+          $$state: _s
+        }
+      })
+
+      // handle getters
+      this.getters = {}
+      Object.keys(getters).forEach(k => {
+        if (typeof getters[k] === 'function') {
+          const ctx = this
+          Object.defineProperty(this.getters, k, {
+            get() {
+              const fn = getters[k]
+              return fn(ctx.state)
+            }
+          })
+        }
+      })
+
+      // handle mutations
+      this.commit = (name, payload) => {
+        const fn = this.mutations[name]
+        if (fn) {
+          fn(this.state, payload)
+        }
+      }
+      this.mutations = mutations
+
+      // handle actions
+      this.dispatch = (name, payload) => {
+        const fn = this.actions[name]
+        if (fn) {
+          return fn(this, payload)
+        }
+      }
+      this.actions = actions
+
+      // todo handle modules
+    }
+
+    get state() {
+      return this._vm._data.$$state
+    }
+  }
+
+  const Vuex = {
+    Store,
+    install(_Vue) {
+      Vue = _Vue
+    }
+  }
+
+  window.Vue.use(Vuex)
+
+  window._store = new Vuex.Store({
+    state: {
+      name: 'sam'
+    },
+    getters: {
+      plusname: (state) => {
+        return `blessto${state.name}`
+      }
+    },
+    mutations: {
+      changeName: (state, val) => {
+        state.name = val
+      }
+    },
+    actions: {
+      fetch(context, payload) {
+        return new Promise(r => {
+          setTimeout(() => {
+            context.commit('changeName', payload.name)
+            r()
+          }, 2000)
+        })
+      }
+    }
+  })
+</script>
+
