@@ -1,5 +1,11 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
-<div>111</div>
+
+<div id="app">
+  <div>state: name => {{name}} </div>
+  <div>getters: plusname => {{plusname}}</div>
+  <div>mutations: <button @click="changeName">commit('changeName')</button></div>
+  <div>actions: <button @click="useActionToChangeName">dispatch('fetch')</button></div>
+</div>
 
 <script>
   let Vue = null
@@ -20,7 +26,7 @@
 
       // handle getters
       this.getters = {}
-      Object.keys(getters).forEach(k => {
+      Object.keys(getters).forEach((k) => {
         if (typeof getters[k] === 'function') {
           const ctx = this
           Object.defineProperty(this.getters, k, {
@@ -32,22 +38,8 @@
         }
       })
 
-      // handle mutations
-      this.commit = (name, payload) => {
-        const fn = this.mutations[name]
-        if (fn) {
-          fn(this.state, payload)
-        }
-      }
       this.mutations = mutations
 
-      // handle actions
-      this.dispatch = (name, payload) => {
-        const fn = this.actions[name]
-        if (fn) {
-          return fn(this, payload)
-        }
-      }
       this.actions = actions
 
       // todo handle modules
@@ -55,6 +47,22 @@
 
     get state() {
       return this._vm._data.$$state
+    }
+
+    // handle mutations
+    commit(name, payload) {
+      const fn = this.mutations[name]
+      if (fn) {
+        fn(this.state, payload)
+      }
+    }
+
+    // handle actions
+    dispatch(name, payload) {
+      const fn = this.actions[name]
+      if (fn) {
+        return fn(this, payload)
+      }
     }
   }
 
@@ -65,8 +73,9 @@
     }
   }
 
-  window.Vue.use(Vuex)
 
+  // use case
+  window.Vue.use(Vuex)
   window._store = new Vuex.Store({
     state: {
       name: 'sam'
@@ -83,14 +92,36 @@
     },
     actions: {
       fetch(context, payload) {
-        return new Promise(r => {
+        return new Promise((r) => {
           setTimeout(() => {
             context.commit('changeName', payload.name)
             r()
-          }, 2000)
+          }, 1000)
         })
       }
     }
   })
-</script>
 
+  new Vue({
+    el: '#app',
+    data: {
+      a: 1
+    },
+    computed: {
+      name() {
+        return _store.state.name
+      },
+      plusname() {
+        return _store.getters.plusname
+      }
+    },
+    methods: {
+      changeName() {
+        _store.commit('changeName', 'wl')
+      },
+      useActionToChangeName() {
+        _store.dispatch('fetch', { name: 'async name' })
+      }
+    }
+  })
+</script>
