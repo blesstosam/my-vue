@@ -12,7 +12,7 @@
     if (args.length > 0) {
       props.children = []
         .concat(...args)
-        .filter((c) => Boolean(c))
+        .filter(Boolean)
         .map((c) => (c instanceof Object ? c : createTextElement(c)))
     }
 

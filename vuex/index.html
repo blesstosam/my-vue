@@ -1,20 +1,36 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
 
 <div id="app">
-  <div>state: name => {{name}} </div>
-  <div>getters: plusname => {{plusname}}</div>
-  <div>mutations: <button @click="changeName">commit('changeName')</button></div>
-  <div>actions: <button @click="useActionToChangeName">dispatch('fetch')</button></div>
+  <div>state: name => {{name}}</div>
+  <div>
+    <span>getters: plusname => {{plusname}} </span>| <span>plusage => {{plusage}}</span>|
+    <span>withBearToken => {{withBearToken}}</span>
+  </div>
+
+  <div>
+    mutations: <button @click="changeName">commit('changeName')</button> |
+    <button @click="changeToken">commit('changeToken')</button>
+  </div>
+  <div>
+    actions: <button @click="useActionToChangeName">dispatch('fetch')</button> |
+    <button @click="useActionToChangeToken">dispatch('fetch2')</button>
+  </div>
 </div>
 
 <script>
   let Vue = null
 
+  const _forEach = (obj, cb) => {
+    Object.keys(obj).forEach((k) => {
+      cb(obj[k], k)
+    })
+  }
+
   class Store {
     constructor(opts = {}) {
       this.opts = opts
 
-      const { state = {}, getters = {}, mutations = {}, actions = {} } = opts
+      const { state = {}, getters = {}, mutations = {}, actions = {}, modules = {} } = opts
 
       // handme state
       const _s = typeof state === 'function' ? state() : state
@@ -26,43 +42,111 @@
 
       // handle getters
       this.getters = {}
-      Object.keys(getters).forEach((k) => {
-        if (typeof getters[k] === 'function') {
-          const ctx = this
+      _forEach(getters, (item, k) => {
+        if (typeof item === 'function') {
           Object.defineProperty(this.getters, k, {
-            get() {
-              const fn = getters[k]
-              return fn(ctx.state)
-            }
+            // todo how to cache the val
+            get: () => item(this.state, this.getters, this.state),
+            enumerable: true
           })
         }
       })
 
-      this.mutations = mutations
+      // handle mutations
+      this._mutations = {}
+      _forEach(mutations, (item, k) => {
+        if (typeof item === 'function') {
+          this._mutations[k] = item
+        }
+      })
 
-      this.actions = actions
+      this._actions = {}
+      _forEach(actions, (item, k) => {
+        if (typeof item === 'function') {
+          this._actions[k] = item
+        }
+      })
 
-      // todo handle modules
+      // 需要将 modules 里的getters/mutations/actions合并到一起
+      this._modules = modules
+      this.handleModules()
+
+      // todo _subscribers
+      // todo handle namespaced = true
     }
 
     get state() {
       return this._vm._data.$$state
     }
 
-    // handle mutations
+    set state(v) {
+      console.warn('please use replaceState to reset state!')
+    }
+
     commit(name, payload) {
-      const fn = this.mutations[name]
+      const fn = this._mutations[name]
       if (fn) {
-        fn(this.state, payload)
+        // 如果是 modules 里的mutations 需要使用localState
+        if (fn.localKey) return fn(this.state[fn.localKey], payload)
+        return fn(this.state, payload)
       }
     }
 
-    // handle actions
     dispatch(name, payload) {
-      const fn = this.actions[name]
+      const fn = this._actions[name]
       if (fn) {
-        return fn(this, payload)
+        // context 包含 commit/dispatch/getters/rootGetters/rootState/state
+        const ctx = {
+          commit: this.commit.bind(this),
+          dispatch: this.dispatch.bind(this),
+          getters: this.getters,
+          rootGetters: this.getters,
+          rootState: this.state,
+          state: this.state
+        }
+        if (fn.localKey) {
+          ctx.state = this.state[fn.localKey]
+        }
+        return fn(ctx, payload)
       }
+    }
+
+    handleModules() {
+      // TODO modules 是tree 需要递归 这里只考虑一层
+      _forEach(this._modules, (item, key) => {
+        const { state = {}, getters = {}, mutations = {}, actions = {} } = item
+        const _s = typeof state === 'function' ? state() : state
+        this._vm.$set(this._vm._data.$$state, key, _s)
+
+        // handle getters
+        // 默认情况下 getters/mutations/actions是注册在同一命名空间下的
+        _forEach(getters, (fn, k) => {
+          if (typeof fn === 'function') {
+            Object.defineProperty(this.getters, k, {
+              get: () => fn(this.state[key], this.getters, this.state),
+              enumerable: true
+            })
+          }
+        })
+
+        // handle mutations pass localState
+        _forEach(mutations, (item, k) => {
+          if (typeof item === 'function') {
+            // 记录一下mutation是哪个模块的
+            item.localKey = key
+            this._mutations[k] = item
+          }
+        })
+
+        // handle actions
+        _forEach(actions, (item, k) => {
+          if (typeof item === 'function') {
+            // 记录一下action是哪个模块的
+            item.localKey = key
+            this._actions[k] = item
+          }
+        })
+      })
     }
   }
 
@@ -73,46 +157,83 @@
     }
   }
 
-
-  // use case
+  // ------------ use case -----------------------
   window.Vue.use(Vuex)
   window._store = new Vuex.Store({
     state: {
-      name: 'sam'
+      name: 'sam',
+      age: 18
     },
     getters: {
       plusname: (state) => {
         return `blessto${state.name}`
+      },
+      plusage(state, getters) {
+        return getters.plusname + '-' + state.age
       }
     },
     mutations: {
       changeName: (state, val) => {
+        console.log('in changeName state', state)
         state.name = val
       }
     },
     actions: {
-      fetch(context, payload) {
+      fetch({ commit, state }, payload) {
+        console.log('in fetch state', state)
         return new Promise((r) => {
           setTimeout(() => {
-            context.commit('changeName', payload.name)
+            commit('changeName', payload.name)
             r()
           }, 1000)
         })
+      }
+    },
+    modules: {
+      loginInfo: {
+        state: {
+          token: '123'
+        },
+        getters: {
+          withBear: (localState, localGetters, rootState) => {
+            return `Bear ${localState.token}`
+          }
+        },
+        mutations: {
+          changeToken(state, val) {
+            console.log('in changeToken state', state)
+            state.token = val
+          }
+        },
+        actions: {
+          fetch2({ commit, state }, payload) {
+            console.log('in fetch2 state', state)
+            return new Promise((r) => {
+              setTimeout(() => {
+                commit('changeToken', payload.name)
+                r()
+              }, 1000)
+            })
+          }
+        }
       }
     }
   })
 
   new Vue({
     el: '#app',
-    data: {
-      a: 1
-    },
     computed: {
       name() {
         return _store.state.name
       },
       plusname() {
         return _store.getters.plusname
+      },
+      plusage() {
+        return _store.getters.plusage
+      },
+      withBearToken() {
+        return _store.getters.withBear
       }
     },
     methods: {
@@ -121,6 +242,12 @@
       },
       useActionToChangeName() {
         _store.dispatch('fetch', { name: 'async name' })
+      },
+      changeToken() {
+        _store.commit('changeToken', '456')
+      },
+      useActionToChangeToken() {
+        _store.dispatch('fetch2', { name: 'async token' })
       }
     }
   })

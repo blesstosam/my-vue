@@ -1,0 +1,119 @@
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuex"></script>
+
+<div id="app">
+  <div>state: name => {{name}} </div>
+  <div>
+    <span>getters: plusname => {{plusname}} </span>|
+    <span>plusage => {{plusage}}</span>|
+    <span>withBearToken => {{withBearToken}}</span>
+  </div>
+   
+  <div>mutations: 
+  	<button @click="changeName">commit('changeName')</button> |
+  	<button @click="changeToken">commit('changeToken')</button>
+  </div>
+  <div>actions: 
+  	<button @click="useActionToChangeName">dispatch('fetch')</button> |
+  	<button @click="useActionToChangeToken">dispatch('fetch2')</button>
+  </div>
+</div>
+
+<script>
+  window.Vue.use(Vuex)
+  window._store = new Vuex.Store({
+    state: {
+      name: 'sam',
+      age: 18
+    },
+    getters: {
+      plusname: (state) => {
+        return `blessto${state.name}`
+      },
+      plusage(state, getters, rootState) {
+      	console.log('localState', state, '===> getters', getters, '===> rootState', rootState )
+        return getters.plusname + '-' + state.age
+      }
+    },
+    mutations: {
+      changeName: (state, val) => {
+        state.name = val
+      }
+    },
+    actions: {
+      fetch(context, payload) {
+      	console.log(context, '===> context')
+        return new Promise((r) => {
+          setTimeout(() => {
+            context.commit('changeName', payload.name)
+            r()
+          }, 1000)
+        })
+      }
+    },
+    modules: {
+      loginInfo: {
+        state: {
+          token: '123'
+        },
+        getters: {
+          withBear: (localState, localGetters, rootState) => {
+            return `Bear ${localState.token}`
+          }
+        },
+        mutations: {
+          changeToken(state, val) {
+            state.token = val
+          }
+        },
+       	actions: {
+          fetch2({ commit, state }, payload) {
+            console.log('in fetch2 state', state)
+            return new Promise((r) => {
+              setTimeout(() => {
+                commit('changeToken', payload.name)
+                r()
+              }, 1000)
+            })
+          }
+        },
+      }
+    }
+  })
+
+  window._vm = new Vue({
+    el: '#app',
+    data: {
+    	a: 1
+    },
+    computed: {
+      name() {
+        return _store.state.name
+      },
+      plusname() {
+        return _store.getters.plusname
+      },
+      plusage() {
+        return _store.getters.plusage
+      },
+     withBearToken() {
+        return _store.getters.withBear
+      }
+    },
+    methods: {
+      changeName() {
+        _store.commit('changeName', 'wl')
+      },
+      useActionToChangeName() {
+        _store.dispatch('fetch', { name: 'async name' })
+      },
+      changeToken() {
+        _store.commit('changeToken', '456')
+      },
+     useActionToChangeToken() {
+        _store.dispatch('fetch2', { name: 'async token' })
+      }
+    }
+  })
+</script>
