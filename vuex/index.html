@@ -1,18 +1,37 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
-
+<style>
+  * {
+    font-family: serif;
+    font-size: 20px;
+  }
+  h2 {
+    margin-bottom: 0px;
+    font-size: 24px;
+  }
+  button {
+    margin-bottom: 8px;
+  }
+</style>
 <div id="app">
-  <div>state: name => {{name}}</div>
+  <h2>state:</h2>
+  <div>name: {{name}}</div>
+
+  <h2>getter:</h2>
   <div>
-    <span>getters: plusname => {{plusname}} </span>| <span>plusage => {{plusage}}</span>|
-    <span>withBearToken => {{withBearToken}}</span>
+    <span>plusname: {{plusname}} </span><br/>
+    <span>plusage: {{plusage}}</span><br/>
+    <span>withBearToken: {{withBearToken}}</span>
   </div>
 
+  <h2>mutations</h2>
   <div>
-    mutations: <button @click="changeName">commit('changeName')</button> |
+    <button @click="changeName">commit('changeName')</button><br/>
     <button @click="changeToken">commit('changeToken')</button>
   </div>
+
+  <h2>actions</h2>
   <div>
-    actions: <button @click="useActionToChangeName">dispatch('fetch')</button> |
+    <button @click="useActionToChangeName">dispatch('fetch')</button><br/>
     <button @click="useActionToChangeToken">dispatch('fetch2')</button>
   </div>
 </div>
