@@ -18,20 +18,20 @@
 
   <h2>getter:</h2>
   <div>
-    <span>plusname: {{plusname}} </span><br/>
-    <span>plusage: {{plusage}}</span><br/>
+    <span>plusname: {{plusname}} </span><br />
+    <span>plusage: {{plusage}}</span><br />
     <span>withBearToken: {{withBearToken}}</span>
   </div>
 
   <h2>mutations</h2>
   <div>
-    <button @click="changeName">commit('changeName')</button><br/>
+    <button @click="changeName">commit('changeName')</button><br />
     <button @click="changeToken">commit('changeToken')</button>
   </div>
 
   <h2>actions</h2>
   <div>
-    <button @click="useActionToChangeName">dispatch('fetch')</button><br/>
+    <button @click="useActionToChangeName">dispatch('fetch')</button><br />
     <button @click="useActionToChangeToken">dispatch('fetch2')</button>
   </div>
 </div>
@@ -51,21 +51,15 @@
 
       const { state = {}, getters = {}, mutations = {}, actions = {}, modules = {} } = opts
 
-      // handme state
-      const _s = typeof state === 'function' ? state() : state
-      this._vm = new Vue({
-        data: {
-          $$state: _s
-        }
-      })
-
-      // handle getters
+      // handle state/getters
       this.getters = {}
-      _forEach(getters, (item, k) => {
-        if (typeof item === 'function') {
+      const computed = {}
+      _forEach(getters, (fn, k) => {
+        if (typeof fn === 'function') {
+          computed[k] = () => fn(this.state, this.getters, this.state)
           Object.defineProperty(this.getters, k, {
-            // todo how to cache the val
-            get: () => item(this.state, this.getters, this.state),
+            // use computed to cache val
+            get: () => this._vm[k],
             enumerable: true
           })
         }
@@ -88,7 +82,15 @@
 
       // 需要将 modules 里的getters/mutations/actions合并到一起
       this._modules = modules
-      this.handleModules()
+      const { computed: moduleComputed, state: moduleState } = this.handleModules()
+
+      const rootState = typeof state === 'function' ? state() : state
+      this._vm = new Vue({
+        data: {
+          $$state: { ...rootState, ...moduleState }
+        },
+        computed: { ...computed, ...moduleComputed }
+      })
 
       // todo _subscribers
       // todo handle namespaced = true
@@ -131,24 +133,28 @@
     }
 
     handleModules() {
-      // TODO modules 是tree 需要递归 这里只考虑一层
+      // TODO modules 是 tree 需要递归 这里只考虑一层
+      const computed = {}
+      const _state = {}
       _forEach(this._modules, (item, key) => {
         const { state = {}, getters = {}, mutations = {}, actions = {} } = item
-        const _s = typeof state === 'function' ? state() : state
-        this._vm.$set(this._vm._data.$$state, key, _s)
+        _state[key] = typeof state === 'function' ? state() : state
 
-        // handle getters
         // 默认情况下 getters/mutations/actions是注册在同一命名空间下的
+        // handle getters
         _forEach(getters, (fn, k) => {
           if (typeof fn === 'function') {
+            computed[k] = () => {
+              return fn(_state[key], this.getters, this.state)
+            }
             Object.defineProperty(this.getters, k, {
-              get: () => fn(this.state[key], this.getters, this.state),
+              get: () => this._vm[k],
               enumerable: true
             })
           }
         })
 
-        // handle mutations pass localState
+        // handle mutations
         _forEach(mutations, (item, k) => {
           if (typeof item === 'function') {
             // 记录一下mutation是哪个模块的
@@ -166,13 +172,28 @@
           }
         })
       })
+
+      return { computed, state: _state }
     }
   }
 
   const Vuex = {
     Store,
     install(_Vue) {
-      Vue = _Vue
+      ;(Vue = _Vue),
+        Vue.mixin({
+          // inject store
+          beforeCreate() {
+            const options = this.$options
+            if (options.store) {
+              // root instance
+              this.$store = options.store
+            } else if (options.parent && options.parent.$store) {
+              // other instance
+              this.$store = options.parent.$store
+            }
+          }
+        })
     }
   }
 
@@ -241,6 +262,7 @@
 
   new Vue({
     el: '#app',
+    store: window._store,
     computed: {
       name() {
         return _store.state.name
@@ -257,16 +279,16 @@
     },
     methods: {
       changeName() {
-        _store.commit('changeName', 'wl')
+        this.$store.commit('changeName', 'wl')
       },
       useActionToChangeName() {
-        _store.dispatch('fetch', { name: 'async name' })
+        this.$store.dispatch('fetch', { name: 'async name' })
       },
       changeToken() {
-        _store.commit('changeToken', '456')
+        this.$store.commit('changeToken', '456')
       },
       useActionToChangeToken() {
-        _store.dispatch('fetch2', { name: 'async token' })
+        this.$store.dispatch('fetch2', { name: 'async token' })
       }
     }
   })
