@@ -5,11 +5,11 @@ import { createTextVNode } from './h.js'
  * 渲染器，将vnode 渲染成真正的html
  * 1. 如果新老vnode都存在，将新vnode和老的做比对，将两者不同的部分更新到dom里，叫做patch（打补丁）
  * 2. 如果只有新的vnode，则直接将新的vnode挂载到容器上，叫做mount（挂载）
- * @param {*} vnode 
- * @param {*} container 
+ * @param {*} vnode
+ * @param {*} container
  */
 export function render(vnode, container) {
-  const prevVNode = container.vnode;
+  const prevVNode = container.vnode
   // undefined or null
   if (prevVNode == null) {
     if (vnode) {
@@ -47,21 +47,21 @@ function mount(vnode, container) {
   }
 }
 
-const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
+const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/
 /**
  * 挂载普通标签
- * @param {*} vnode 
- * @param {*} container 
- * @param {*} isSVG 
+ * @param {*} vnode
+ * @param {*} container
+ * @param {*} isSVG
  */
 function mountElement(vnode, container, isSVG) {
   // 4. 处理svg标签
   // 因为 svg 的书写总是以 <svg> 标签开始的，所有其他 svg 相关的标签都是 <svg> 标签的子代元素
   // 在 mountElement 函数中一旦 isSVG 为真，那么后续创建的所有子代元素都会被认为是 svg 标签
-  isSVG = isSVG || (vnode.flags & VNodeFlags.ELEMENT_SVG)
-  const el = isSVG ?
-    document.createElementNS('http://www.w3.org/2000/svg', vnode.tag) :
-    document.createElement(vnode.tag)
+  isSVG = isSVG || vnode.flags & VNodeFlags.ELEMENT_SVG
+  const el = isSVG
+    ? document.createElementNS('http://www.w3.org/2000/svg', vnode.tag)
+    : document.createElement(vnode.tag)
 
   // 1. 将dom挂载到vnode上，这样用vnode就能引用真实的dom
   vnode.el = el
@@ -121,8 +121,8 @@ function mountElement(vnode, container, isSVG) {
 
 /**
  * 挂载文本节点
- * @param {*} vnode 
- * @param {*} container 
+ * @param {*} vnode
+ * @param {*} container
  */
 function mountText(vnode, container) {
   const el = document.createTextNode(vnode.children)
@@ -187,9 +187,9 @@ function mountComponent(vnode, container, isSVG) {
 
 /**
  * 挂载有状态的组件
- * @param {*} vnode 
- * @param {*} container 
- * @param {*} isSVG 
+ * @param {*} vnode
+ * @param {*} container
+ * @param {*} isSVG
  */
 function mountStatefulComponent(vnode, container, isSVG) {
   // 创建组件实例
@@ -239,9 +239,9 @@ function mountStatefulComponent(vnode, container, isSVG) {
 
 /**
  * 挂载函数式组件
- * @param {*} vnode 
- * @param {*} container 
- * @param {*} isSVG 
+ * @param {*} vnode
+ * @param {*} container
+ * @param {*} isSVG
  */
 function mountFunctionalComponent(vnode, container, isSVG) {
   // 获取 VNode
@@ -251,7 +251,6 @@ function mountFunctionalComponent(vnode, container, isSVG) {
   // el 元素引用该组件的根元素
   vnode.el = $vnode.el
 }
-
 
 // --------------------------------------- patch ---------------------------------------
 function patch(prevVNode, nextVNode, container) {
@@ -283,7 +282,6 @@ function replaceVNode(prevVNode, nextVNode, container) {
   mount(nextVNode, container)
 }
 
-
 function patchElement(prevVNode, nextVNode, container) {
   // 如果新旧 VNode 描述的是不同的标签，则调用 replaceVNode 函数，使用新的 VNode 替换旧的 VNode
   if (prevVNode.tag !== nextVNode.tag) {
@@ -292,7 +290,7 @@ function patchElement(prevVNode, nextVNode, container) {
   }
 
   // 拿到 el 元素，注意这时要让 nextVNode.el 也引用该元素
-  const el = nextVNode.el = prevVNode.el
+  const el = (nextVNode.el = prevVNode.el)
   const prevData = prevVNode.data
   const nextData = nextVNode.data
 
@@ -318,18 +316,18 @@ function patchElement(prevVNode, nextVNode, container) {
   patchChildren(
     prevVNode.childFlags, // 旧的 VNode 子节点的类型
     nextVNode.childFlags, // 新的 VNode 子节点的类型
-    prevVNode.children,   // 旧的 VNode 子节点
-    nextVNode.children,   // 新的 VNode 子节点
-    el                    // 当前标签元素，即这些子节点的父节点
+    prevVNode.children, // 旧的 VNode 子节点
+    nextVNode.children, // 新的 VNode 子节点
+    el // 当前标签元素，即这些子节点的父节点
   )
 }
 
 /**
  * 更新dom的数据
- * @param {*} el 
- * @param {*} key 
- * @param {*} prevValue 
- * @param {*} nextValue 
+ * @param {*} el
+ * @param {*} key
+ * @param {*} prevValue
+ * @param {*} nextValue
  */
 function patchData(el, key, prevValue, nextValue) {
   switch (key) {
@@ -374,19 +372,13 @@ function patchData(el, key, prevValue, nextValue) {
 
 /**
  * 更新子节点 - 需要递归调用
- * @param {*} prevChildFlags 
- * @param {*} nextChildFlags 
- * @param {*} prevChildren 
- * @param {*} nextChildren 
- * @param {*} container 
+ * @param {*} prevChildFlags
+ * @param {*} nextChildFlags
+ * @param {*} prevChildren
+ * @param {*} nextChildren
+ * @param {*} container
  */
-function patchChildren(
-  prevChildFlags,
-  nextChildFlags,
-  prevChildren,
-  nextChildren,
-  container
-) {
+function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildren, container) {
   switch (prevChildFlags) {
     case ChildrenFlags.SINGLE_VNODE:
       switch (nextChildFlags) {
@@ -411,7 +403,7 @@ function patchChildren(
           }
           break
       }
-      break;
+      break
     case ChildrenFlags.NO_CHILDREN:
       switch (nextChildFlags) {
         case ChildrenFlags.SINGLE_VNODE:
@@ -460,7 +452,6 @@ function patchChildren(
   }
 }
 
-
 function patchText(prevVNode, nextVNode) {
   // 拿到文本元素 el，同时让 nextVNode.el 指向该文本元素
   const el = (nextVNode.el = prevVNode.el)
@@ -476,8 +467,8 @@ function patchFragment(prevVNode, nextVNode, container) {
   patchChildren(
     prevVNode.childFlags, // 旧片段的子节点类型
     nextVNode.childFlags, // 新片段的子节点类型
-    prevVNode.children,   // 旧片段的子节点
-    nextVNode.children,   // 新片段的子节点
+    prevVNode.children, // 旧片段的子节点
+    nextVNode.children, // 新片段的子节点
     container
   )
 
@@ -510,9 +501,7 @@ function patchPortal(prevVNode, nextVNode) {
   if (nextVNode.tag !== prevVNode.tag) {
     // 获取新的容器元素，即挂载目标
     const container =
-      typeof nextVNode.tag === 'string'
-        ? document.querySelector(nextVNode.tag)
-        : nextVNode.tag
+      typeof nextVNode.tag === 'string' ? document.querySelector(nextVNode.tag) : nextVNode.tag
 
     switch (nextVNode.childFlags) {
       case ChildrenFlags.SINGLE_VNODE:
@@ -543,5 +532,3 @@ function patchComponent(prevVNode, nextVNode, container) {
     instance._update()
   }
 }
-
-

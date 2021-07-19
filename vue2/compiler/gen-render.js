@@ -1,8 +1,8 @@
 /**
  * 生成render函数 递归的调用下面的函数拼成字符串
- * _c => createElement 
+ * _c => createElement
  * _v => createTextVNode
- * _e => createEmptyNode 
+ * _e => createEmptyNode
  * _s => toString() 见html-parser的定义
  */
 export function genNode(node, state) {
@@ -41,7 +41,7 @@ function genData(el, state) {
   }
   if (el.attrs) {
     let attrsVal = '{'
-    el.attrs.forEach(i => {
+    el.attrs.forEach((i) => {
       attrsVal += `${JSON.stringify(i.name)}:${JSON.stringify(i.value)},`
     })
     attrsVal = attrsVal.replace(/,$/, '') + '}'
@@ -54,7 +54,7 @@ function genData(el, state) {
 function genChildren(el, state) {
   const children = el.children
   if (children.length) {
-    return `[${children.map(c => genNode(c, state)).join(',')}]`
+    return `[${children.map((c) => genNode(c, state)).join(',')}]`
   }
 }
 

@@ -1,7 +1,8 @@
 import { h, Fragment, Portal } from './h.js'
 import { render } from './render.js'
 
-const elementVNode = h('div',
+const elementVNode = h(
+  'div',
   {
     style: {
       height: '100px',
@@ -13,7 +14,7 @@ const elementVNode = h('div',
       'cls-a',
       {
         'clas-b': true,
-        'cls-c': false,
+        'cls-c': false
       },
       ['cls-d']
     ],
@@ -42,14 +43,12 @@ const elementVNode = h('div',
   ])
 )
 console.log(elementVNode, 11)
-const elementVNode2 = h('input',
-  {
-    class: { 'cls-a': true },
-    type: 'checkbox',
-    checked: true,
-    custom: '1'
-  }
-)
+const elementVNode2 = h('input', {
+  class: { 'cls-a': true },
+  type: 'checkbox',
+  checked: true,
+  custom: '1'
+})
 // console.log(elementVNode)
 
 class MyComp {
@@ -61,10 +60,7 @@ class MyComp {
           background: 'green'
         }
       },
-      [
-        h('span', null, '我是组件的标题1......'),
-        h('span', null, '我是组件的标题2......')
-      ]
+      [h('span', null, '我是组件的标题1......'), h('span', null, '我是组件的标题2......')]
     )
   }
 }
@@ -79,10 +75,7 @@ function MyFunctionalComponent() {
         background: 'red'
       }
     },
-    [
-      h('span', null, '我是函数式组件......'),
-      h('span', null, '我是函数式组件......')
-    ]
+    [h('span', null, '我是函数式组件......'), h('span', null, '我是函数式组件......')]
   )
 }
 
@@ -95,10 +88,7 @@ function MyFunctionalComponent2() {
         background: 'yellow'
       }
     },
-    [
-      h('span', null, '我是函数式组件......'),
-      h('span', null, '我是函数式组件......')
-    ]
+    [h('span', null, '我是函数式组件......'), h('span', null, '我是函数式组件......')]
   )
 }
 
@@ -174,7 +164,6 @@ const funVnode2 = h(MyFunctionalComponent2)
 //   ), document.querySelector('#app'))
 // }
 
-
 // ***************************************************** 测试  patch文本
 // render(h('div', null,
 //   '旧文本'
@@ -184,7 +173,6 @@ const funVnode2 = h(MyFunctionalComponent2)
 //   '新文本-----'
 //   ), document.querySelector('#app'))
 // }
-
 
 // *****************************************************   测试  patch Fragment
 // render(h(Fragment, null,
@@ -214,7 +202,6 @@ const funVnode2 = h(MyFunctionalComponent2)
 //   ), document.querySelector('#app'))
 // }
 
-
 // ***************************************************** 测试  有状态组件 data更新
 // class MyComponent {
 //   // 自身状态 or 本地状态
@@ -237,7 +224,6 @@ const funVnode2 = h(MyFunctionalComponent2)
 //   }
 // }
 // render(h(MyComponent), document.querySelector('#app'))
-
 
 // ***************************************************** 测试  有状态组件 props更新
 // 子组件类
@@ -269,10 +255,3 @@ class ParentComponent {
   }
 }
 render(h(ParentComponent), document.querySelector('#app'))
-
-
-
-
-
-
-

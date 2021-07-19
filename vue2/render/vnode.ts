@@ -35,16 +35,15 @@ VNodeFlags['COMPONENT_STATEFUL'] =
 // 有状态组件 和  函数式组件都是“组件”，用 COMPONENT 表示
 VNodeFlags['COMPONENT'] = VNodeFlags['COMPONENT_STATEFUL'] | VNodeFlags.COMPONENT_FUNCTIONAL
 
-export interface VNode  {
+export interface VNode {
   // _isVNode 属性在上文中没有提到，它是一个始终为 true 的值，有了它，我们就可以判断一个对象是否是 VNode 对象
-  _isVNode: true,
+  _isVNode: true
   // el 属性在上文中也没有提到，当一个 VNode 被渲染为真实 DOM 之后，el 属性的值会引用该真实DOM
-  el: Element | null,
-  
-  flags: VNodeFlags,
-  tag: string | Function,
-  data: {[key: string]: any},
-  children: any,
+  el: Element | null
+
+  flags: VNodeFlags
+  tag: string | Function
+  data: { [key: string]: any }
+  children: any
   childFlags: VNodeFlags
 }
-

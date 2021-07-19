@@ -1,4 +1,3 @@
-
 // var cls = [
 //   'class-a',
 //   {
@@ -30,8 +29,6 @@
 
 // ---------------------------------------------------------------------------------------------
 
-
-
 // import {h, init} from 'snabbdom'
 
 // // init 方法用来创建 patch 函数
@@ -54,50 +51,44 @@
 
 import { VNodeFlags, ChildrenFlags } from './flags'
 
-
 export const Fragment = Symbol()
 export const Portal = Symbol()
 
 /**
  * 创建元素类型的VNode
- * @param {*} tag 
- * @param {*} data 
+ * @param {*} tag
+ * @param {*} data
  * @param {*} children
- * @returns {VNode} 
+ * @returns {VNode}
  */
 export function h(tag, data = null, children = null) {
   let flags = null
   if (typeof tag === 'string') {
-
     flags = tag === 'svg' ? VNodeFlags.ELEMENT_SVG : VNodeFlags.ELEMENT_HTML
 
     // 序列化class
     if (data) data.class = normalizeClass(data.class)
-
   } else if (tag === Fragment) {
-
     flags = VNodeFlags.FRAGMENT
-
   } else if (tag === Portal) {
-
     flags = VNodeFlags.PORTAL
     tag = data && data.target
-
-  } else {  // 组件类型
+  } else {
+    // 组件类型
     // vue2的对象式组件
     if (tag !== null && typeof tag === 'object') {
-      flags = tag.functional ? // functional 为true表示函数式组件
-        VNodeFlags.COMPONENT_FUNCTIONAL :     // 函数式组件
-        VNodeFlags.COMPONENT_STATEFUL_NORMAL  // 有状态组件
+      flags = tag.functional // functional 为true表示函数式组件
+        ? VNodeFlags.COMPONENT_FUNCTIONAL // 函数式组件
+        : VNodeFlags.COMPONENT_STATEFUL_NORMAL // 有状态组件
     } else if (typeof tag === 'function') {
       // vue3 的类组件
       // 在 Vue3 中，因为有状态组件会继承基类 (基类中有render函数)
       // 所以通过原型链判断其原型中是否有 render 函数的定义来确定该组件是否是有状态组件
-      flags = tag.prototype && tag.prototype.render ?
-        VNodeFlags.COMPONENT_STATEFUL_NORMAL :
-        VNodeFlags.COMPONENT_FUNCTIONAL
+      flags =
+        tag.prototype && tag.prototype.render
+          ? VNodeFlags.COMPONENT_STATEFUL_NORMAL
+          : VNodeFlags.COMPONENT_FUNCTIONAL
     }
-
   }
 
   let childFlags = null
@@ -156,7 +147,7 @@ function normalizeVNodes(children) {
 
 /**
  * 创建文本节点的VNode
- * @param {*} text 
+ * @param {*} text
  * @returns {Vnode}
  */
 export function createTextVNode(text) {
@@ -176,7 +167,7 @@ export function createTextVNode(text) {
 
 /**
  * 序列化class
- * @param {*} classValue 
+ * @param {*} classValue
  * @returns {string}
  */
 function normalizeClass(classValue) {
@@ -210,7 +201,6 @@ function normalizeClass(classValue) {
 // const node2 = h(MyFunctionComponent, null, h('div'))
 // console.log(node2)
 
-
 // 有状态组件
 // class Component {
 //   render() {
@@ -220,6 +210,3 @@ function normalizeClass(classValue) {
 // class MyStatefulComponent extends Component { }
 // const node3 = h(MyStatefulComponent, null, h('div'))
 // console.log(node3)
-
-
-
